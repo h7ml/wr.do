@@ -78,26 +78,42 @@ export async function getAllUserEmails(
   admin: boolean,
   onlyUnread: boolean = false,
 ) {
-  let whereOptions: any = {};
+  const keyword = search?.trim() ?? "";
 
-  if (admin) {
-    whereOptions = {
-      emailAddress: { contains: search, mode: "insensitive" },
-    };
-  } else {
-    whereOptions = {
-      userId,
-      deletedAt: null,
-      emailAddress: { contains: search, mode: "insensitive" },
-    };
+  const whereOptions: Prisma.UserEmailWhereInput = {
+    deletedAt: null,
+    ...(admin ? {} : { userId }),
+  };
+
+  if (keyword) {
+    whereOptions.OR = [
+      { emailAddress: { contains: keyword, mode: "insensitive" } },
+      {
+        forwardEmails: {
+          some: {
+            OR: [
+              { subject: { contains: keyword, mode: "insensitive" } },
+              { from: { contains: keyword, mode: "insensitive" } },
+              { fromName: { contains: keyword, mode: "insensitive" } },
+              { to: { contains: keyword, mode: "insensitive" } },
+            ],
+          },
+        },
+      },
+    ];
   }
 
   if (onlyUnread) {
-    whereOptions.forwardEmails = {
-      some: {
-        readAt: null,
+    whereOptions.AND = [
+      ...(whereOptions.AND ?? []),
+      {
+        forwardEmails: {
+          some: {
+            readAt: null,
+          },
+        },
       },
-    };
+    ];
   }
 
   // Fetch paginated UserEmail records
@@ -185,23 +201,42 @@ export async function getUserEmailIds(
   admin: boolean,
   onlyUnread: boolean = false,
 ): Promise<string[]> {
-  const whereOptions: Prisma.UserEmailWhereInput = admin
-    ? {
-        deletedAt: null,
-        emailAddress: { contains: search, mode: "insensitive" },
-      }
-    : {
-        userId,
-        deletedAt: null,
-        emailAddress: { contains: search, mode: "insensitive" },
-      };
+  const keyword = search?.trim() ?? "";
+
+  const whereOptions: Prisma.UserEmailWhereInput = {
+    deletedAt: null,
+    ...(admin ? {} : { userId }),
+  };
+
+  if (keyword) {
+    whereOptions.OR = [
+      { emailAddress: { contains: keyword, mode: "insensitive" } },
+      {
+        forwardEmails: {
+          some: {
+            OR: [
+              { subject: { contains: keyword, mode: "insensitive" } },
+              { from: { contains: keyword, mode: "insensitive" } },
+              { fromName: { contains: keyword, mode: "insensitive" } },
+              { to: { contains: keyword, mode: "insensitive" } },
+            ],
+          },
+        },
+      },
+    ];
+  }
 
   if (onlyUnread) {
-    whereOptions.forwardEmails = {
-      some: {
-        readAt: null,
+    whereOptions.AND = [
+      ...(whereOptions.AND ?? []),
+      {
+        forwardEmails: {
+          some: {
+            readAt: null,
+          },
+        },
       },
-    };
+    ];
   }
 
   const userEmails = await prisma.userEmail.findMany({
@@ -375,6 +410,7 @@ export async function getEmailsByEmailAddress(
           { subject: { contains: keyword, mode: "insensitive" } },
           { from: { contains: keyword, mode: "insensitive" } },
           { fromName: { contains: keyword, mode: "insensitive" } },
+          { to: { contains: keyword, mode: "insensitive" } },
         ],
       },
     ];

@@ -660,7 +660,7 @@ export default function EmailSidebar({
                   ? "bg-gray-100 dark:bg-neutral-900"
                   : "",
                 showBulkSelector && isSelectedForBulk
-                  ? "ring-1 ring-primary/60 dark:ring-neutral-300/60"
+                  ? "border-primary bg-primary/10 text-primary ring-1 ring-primary/60 dark:border-primary/70 dark:bg-primary/20 dark:text-primary"
                   : "",
                 isCollapsed ? "flex items-center justify-center" : "",
               )}
@@ -918,7 +918,7 @@ export default function EmailSidebar({
             <Input
               value={deleteInput}
               onChange={(e) => setDeleteInput(e.target.value)}
-              placeholder={`please input`}
+              placeholder={t("Bulk.keyword")}
               className="mb-4"
             />
             <div className="flex justify-end gap-2">
